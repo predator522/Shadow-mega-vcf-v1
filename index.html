@@ -3,317 +3,192 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Owner Dashboard - Shadow VCF</title>
+<title>Shadow VCF - Owner</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap');
-
-:root {
-  --neon-purple: #bc13fe;
-  --neon-cyan: #00ffff;
-  --neon-silver: #e2e2e2;
-  --dark-bg: #0a0a0a;
-  --input-bg: #111111;
-  --button-bg: linear-gradient(to right, var(--neon-purple), var(--neon-cyan));
-}
-
 body {
   font-family: 'Orbitron', sans-serif;
-  margin: 0;
-  padding: 40px 20px;
-  background: var(--dark-bg);
-  color: var(--neon-silver);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-}
-
-h1, h2 {
-  text-shadow: 0 0 15px var(--neon-purple);
-  margin-bottom: 30px;
+  background: #0a0a0a;
+  color: #e2e2e2;
   text-align: center;
+  padding: 20px;
 }
-
-.card {
-  background: rgba(20,0,40,0.85);
-  padding: 40px 30px;
+h1,h2 { text-shadow: 0 0 10px #bc13fe; }
+.container {
+  max-width: 450px;
+  margin: auto;
+  background: rgba(20,0,40,0.8);
+  padding: 25px;
   border-radius: 40px;
-  border: 2px solid var(--neon-purple);
-  box-shadow: 0 0 35px var(--neon-purple);
-  max-width: 500px;
+  border: 2px solid #bc13fe;
+  box-shadow: 0 0 20px #bc13fe;
+}
+input, select, button {
   width: 100%;
-  margin-bottom: 30px;
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-input, select {
-  padding: 15px 20px;
+  padding: 12px;
+  margin: 10px 0;
   border-radius: 25px;
-  border: 1px solid var(--neon-cyan);
-  background: var(--input-bg);
-  color: var(--neon-silver);
+  border: 1px solid #00ffff;
+  background: #111;
+  color: #e2e2e2;
   font-size: 1em;
-  text-align: center;
-  transition: all 0.3s ease;
 }
-
-input:focus, select:focus {
-  outline: none;
-  border-color: var(--neon-purple);
-  box-shadow: 0 0 15px var(--neon-purple);
-}
-
 button {
-  padding: 15px;
-  margin-top: 20px;
-  border-radius: 25px;
+  background: linear-gradient(to right, #bc13fe, #00ffff);
   border: none;
-  background: var(--button-bg);
-  color: #fff;
-  font-size: 1.1em;
-  font-weight: bold;
   cursor: pointer;
-  text-shadow: 0 0 5px rgba(0,0,0,0.5);
-  box-shadow: 0 0 25px var(--neon-purple);
-  transition: all 0.3s ease;
-}
-
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 35px var(--neon-cyan);
-}
-
-#sessionInfo, #shareSection {
-  margin-top: 20px;
-  text-align: center;
   font-weight: bold;
-  text-shadow: 0 0 10px var(--neon-purple);
+  box-shadow: 0 0 15px #bc13fe;
 }
-
+button:hover { transform: translateY(-2px); box-shadow: 0 0 25px #00ffff; }
 .share-link {
-  margin-top: 10px;
+  word-break: break-all;
+  background: rgba(30,0,60,0.7);
   padding: 10px;
-  border-radius: 20px;
-  background: var(--neon-purple);
-  cursor: pointer;
-  display: inline-block;
-  color: #fff;
-  transition: all 0.3s ease;
+  border-radius: 25px;
+  margin-top: 10px;
 }
-
-.share-link:hover {
-  background: var(--neon-cyan);
-  transform: translateY(-2px);
-}
-
-table {
+.participant-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 30px;
+  margin-top: 20px;
 }
-
-th, td {
+.participant-table th, .participant-table td {
+  border: 1px solid #00ffff;
+  padding: 8px;
+}
+.download-btn {
+  margin-top: 20px;
   padding: 12px;
-  text-align: center;
-  border: 1px solid rgba(188,19,254,0.2);
-}
-
-th {
-  background-color: rgba(30,0,60,0.7);
-  text-shadow: 0 0 5px var(--neon-purple);
-}
-
-tr:nth-child(even) { background-color: rgba(30,30,30,0.5); }
-tr:hover { background-color: rgba(60,0,100,0.3); }
-
-.action-btn {
-  padding: 8px 15px;
-  border-radius: 20px;
-  background: linear-gradient(to right, #ff3366,#ff3366);
-  color: #fff;
-  cursor: pointer;
-}
-
-.action-btn:hover {
-  background: linear-gradient(to right, #ff4477,#ff4477);
-}
-
-#downloadVCFBtn {
   width: 100%;
-}
-
-@media (max-width: 600px){
-  .card { padding: 30px 20px; }
-  input, select { font-size: 0.95em; }
+  border-radius: 25px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  background: linear-gradient(to right,#bc13fe,#00ffff);
+  color:#fff;
 }
 </style>
 </head>
 <body>
 
-<div class="card">
-  <h1>Owner Dashboard</h1>
+<h1>Owner Dashboard</h1>
+<div class="container">
   <h2>Create a Session</h2>
-  <div class="input-group">
-    <input type="text" id="ownerName" placeholder="Your Name">
-    <input type="number" id="maxParticipants" placeholder="Max Participants">
-    <input type="number" id="duration" placeholder="Duration">
-    <select id="durationUnit">
-      <option value="minutes">Minutes</option>
-      <option value="hours">Hours</option>
-      <option value="days">Days</option>
-    </select>
-    <input type="text" id="groupLink" placeholder="Join the VCF group (URL)">
-    <button id="createSessionBtn">Create Session</button>
-  </div>
+  <input type="text" id="ownerName" placeholder="Your Name">
+  <input type="number" id="maxParticipants" placeholder="Max Participants">
+  <input type="text" id="groupLink" placeholder="Group Link (WhatsApp)">
+  <button id="createSessionBtn">Create Session</button>
+
   <div id="sessionInfo"></div>
-  <div id="shareSection" style="display:none;">
+  <div id="shareSection" style="display:none">
     <p>Share this link with participants:</p>
     <div class="share-link" id="shareLink">Click to copy</div>
   </div>
-</div>
 
-<div class="card">
-  <h2>Current Participants</h2>
-  <table id="participantsTable">
-    <thead>
-      <tr><th>Name</th><th>Number</th><th>Action</th></tr>
-    </thead>
+  <table class="participant-table" id="participantsTable">
+    <thead><tr><th>Name</th><th>Number</th></tr></thead>
     <tbody></tbody>
   </table>
-  <button id="downloadVCFBtn">Download All VCFs</button>
+  <button id="downloadVCFBtn" class="download-btn">Download All VCFs</button>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.24.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.24.0/firebase-firestore.js";
-
+<script src="https://www.gstatic.com/firebasejs/11.24.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.24.0/firebase-firestore.js"></script>
+<script>
 const firebaseConfig = {
   apiKey: "AIzaSyBnbWvBJ_KtXl_1KpPGCmr-os4gKIP_uhM",
   authDomain: "shadow-vcf.firebaseapp.com",
   projectId: "shadow-vcf",
   storageBucket: "shadow-vcf.firebasestorage.app",
   messagingSenderId: "575022348228",
-  appId: "1:575022348228:web:447dde12e94ac740079691",
-  measurementId: "G-7SXSRVXHMT"
+  appId: "1:575022348228:web:447dde12e94ac740079691"
 };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const btn = document.getElementById('createSessionBtn');
+const sessionInfo = document.getElementById('sessionInfo');
+const shareSection = document.getElementById('shareSection');
+const shareLink = document.getElementById('shareLink');
+const participantsTable = document.getElementById('participantsTable').querySelector('tbody');
+let currentSessionID = null;
 
-let currentSessionID = localStorage.getItem('currentSessionID');
-
-function durationToMs(value, unit) {
-  switch(unit){
-    case 'minutes': return value*60*1000;
-    case 'hours': return value*60*60*1000;
-    case 'days': return value*24*60*60*1000;
-  }
-}
-
-document.getElementById('createSessionBtn').addEventListener('click', async ()=>{
+btn.addEventListener('click', async () => {
   const owner = document.getElementById('ownerName').value.trim();
   const maxParticipants = parseInt(document.getElementById('maxParticipants').value);
-  const duration = parseInt(document.getElementById('duration').value);
-  const unit = document.getElementById('durationUnit').value;
   const groupLink = document.getElementById('groupLink').value.trim();
-  if(!owner || !maxParticipants || !duration || !groupLink) return alert("Fill all fields");
+  if(!owner||!maxParticipants||!groupLink) return alert("Fill all fields");
 
-  const expiry = Date.now() + durationToMs(duration, unit);
-  const sessionData = { owner, maxParticipants, expiry, participants: [], groupLink, downloaded:false };
-
+  btn.disabled=true; btn.textContent="Creating...";
   try{
-    const docRef = doc(db,"sessions", Date.now().toString());
-    await setDoc(docRef, sessionData);
+    const docRef = await db.collection("sessions").add({
+      owner,maxParticipants,groupLink,participants:[],created:Date.now()
+    });
     currentSessionID = docRef.id;
     localStorage.setItem('currentSessionID', currentSessionID);
 
-    const shareUrl = `${window.location.origin}/participant.html?session=${currentSessionID}`;
-    document.getElementById('sessionInfo').innerHTML = `Session ID: <b style="color:var(--neon-cyan)">${currentSessionID}</b>`;
-    document.getElementById('shareSection').style.display = 'block';
-    const shareLinkDiv = document.getElementById('shareLink');
-    shareLinkDiv.textContent = shareUrl;
+    sessionInfo.innerHTML = `Session ID: <b>${currentSessionID}</b>`;
+    shareLink.textContent = `${window.location.origin}/participant.html?session=${currentSessionID}`;
+    shareSection.style.display="block";
 
-    shareLinkDiv.onclick = ()=>{
-      navigator.clipboard.writeText(shareUrl);
-      shareLinkDiv.textContent="Copied!";
-      setTimeout(()=>{ shareLinkDiv.textContent=shareUrl },2000);
-    };
+    shareLink.onclick = ()=>{navigator.clipboard.writeText(shareLink.textContent); alert("Link copied!");};
 
     renderParticipants();
   }catch(err){console.error(err); alert("Failed to create session");}
+  btn.disabled=false; btn.textContent="Create Session";
+});
+
+// Load session on refresh
+window.addEventListener('load', async()=>{
+  const storedID = localStorage.getItem('currentSessionID');
+  if(storedID){
+    currentSessionID = storedID;
+    sessionInfo.innerHTML = `Session ID: <b>${currentSessionID}</b>`;
+    shareLink.textContent = `${window.location.origin}/participant.html?session=${currentSessionID}`;
+    shareSection.style.display="block";
+    renderParticipants();
+  }
 });
 
 async function renderParticipants(){
   if(!currentSessionID) return;
-  try{
-    const docRef = doc(db,"sessions",currentSessionID);
-    const docSnap = await getDoc(docRef);
-    if(!docSnap.exists()) return;
-    const session = docSnap.data();
-    const tbody = document.querySelector('#participantsTable tbody');
-    tbody.innerHTML="";
-    session.participants.forEach((p,idx)=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${p.name}</td><td>${p.number}</td>
-                      <td><button class="action-btn" onclick="removeParticipant(${idx})">Remove</button></td>`;
-      tbody.appendChild(tr);
-    });
-  }catch(err){console.error(err);}
+  participantsTable.innerHTML="";
+  const docRef = db.collection("sessions").doc(currentSessionID);
+  const docSnap = await docRef.get();
+  if(!docSnap.exists) return;
+  const session = docSnap.data();
+  session.participants.forEach(p=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${p.name}</td><td>${p.number}</td>`;
+    participantsTable.appendChild(tr);
+  });
 }
 
-window.removeParticipant = async function(idx){
-  if(!currentSessionID) return;
-  try{
-    const docRef = doc(db,"sessions",currentSessionID);
-    const docSnap = await getDoc(docRef);
-    if(!docSnap.exists()) return;
-    const session = docSnap.data();
-    session.participants.splice(idx,1);
-    await updateDoc(docRef, {participants: session.participants});
-    renderParticipants();
-  }catch(err){console.error(err);}
-};
-
-document.getElementById('downloadVCFBtn').addEventListener('click', async ()=>{
+// Download VCF
+document.getElementById('downloadVCFBtn').addEventListener('click', async()=>{
   if(!currentSessionID) return alert("No active session");
-  try{
-    const docRef = doc(db,"sessions",currentSessionID);
-    const docSnap = await getDoc(docRef);
-    if(!docSnap.exists()) return alert("Session not found");
-    const session = docSnap.data();
-    if(session.participants.length===0) return alert("No participants");
+  const docRef = db.collection("sessions").doc(currentSessionID);
+  const docSnap = await docRef.get();
+  if(!docSnap.exists) return alert("Session not found");
+  const session = docSnap.data();
+  if(session.participants.length===0) return alert("No participants to download");
 
-    let vCardAll="";
-    session.participants.forEach(p=>{
-      vCardAll+=`BEGIN:VCARD
+  let vCardAll='';
+  session.participants.forEach(p=>{
+    vCardAll+=`BEGIN:VCARD
 VERSION:3.0
 FN:${p.name}
 TEL;TYPE=CELL:${p.number}
 NOTE: Saved from session ${currentSessionID}
 END:VCARD
 `;
-    });
-
-    const blob = new Blob([vCardAll], {type:"text/vcard"});
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download=`session-${currentSessionID}.vcf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    await updateDoc(docRef, {downloaded:true});
-    alert("Session downloaded!");
-  }catch(err){console.error(err); alert("Failed to download");}
+  });
+  const blob = new Blob([vCardAll],{type:'text/vcard'});
+  const link=document.createElement('a');
+  link.href=URL.createObjectURL(blob);
+  link.download=`session-${currentSessionID}.vcf`;
+  document.body.appendChild(link); link.click(); document.body.removeChild(link);
 });
-
-// Render participants on load if session exists
-if(currentSessionID) renderParticipants();
 </script>
 </body>
 </html>
