@@ -5,112 +5,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Join Session - Shadow VCF</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap');
-
-:root {
-  --neon-purple: #bc13fe;
-  --neon-silver: #e2e2e2;
-  --neon-cyan: #00ffff;
-  --dark-bg: #0a0a0a;
-  --input-bg: #111111;
-  --button-bg: linear-gradient(to right, var(--neon-purple), var(--neon-cyan));
-}
-
 body {
   font-family: 'Orbitron', sans-serif;
-  margin: 0;
-  padding: 40px 20px;
-  background: var(--dark-bg);
-  color: var(--neon-silver);
+  background: #0a0a0a;
+  color: #e2e2e2;
   text-align: center;
-  min-height: 100vh;
+  padding: 20px;
 }
-
-h1 {
-  font-size: 2.5em;
-  margin-bottom: 30px;
-  text-shadow: 0 0 15px var(--neon-purple);
-}
-
+h1 { text-shadow: 0 0 10px #bc13fe; }
 .container {
-  max-width: 450px;
+  max-width: 400px;
   margin: auto;
-  background: rgba(20, 0, 40, 0.8);
-  padding: 30px 25px;
+  background: rgba(20,0,40,0.8);
+  padding: 25px;
   border-radius: 40px;
-  border: 2px solid var(--neon-purple);
-  box-shadow: 0 0 25px var(--neon-purple);
+  border: 2px solid #bc13fe;
+  box-shadow: 0 0 20px #bc13fe;
 }
-
-input {
+input, button {
   width: 100%;
-  padding: 15px 20px;
-  margin: 15px 0;
+  padding: 12px;
+  margin: 10px 0;
   border-radius: 25px;
-  border: 1px solid var(--neon-cyan);
-  background: var(--input-bg);
-  color: var(--neon-silver);
+  border: 1px solid #00ffff;
+  background: #111;
+  color: #e2e2e2;
   font-size: 1em;
   text-align: center;
 }
-
-input:focus {
-  outline: none;
-  border-color: var(--neon-purple);
-  box-shadow: 0 0 15px var(--neon-purple);
-}
-
 button {
-  padding: 15px 30px;
-  margin-top: 20px;
-  border-radius: 25px;
+  background: linear-gradient(to right, #bc13fe, #00ffff);
   border: none;
-  background: var(--button-bg);
-  color: #fff;
-  font-size: 1.1em;
-  font-weight: bold;
   cursor: pointer;
-  text-shadow: 0 0 5px rgba(0,0,0,0.5);
-  box-shadow: 0 0 20px var(--neon-purple);
-  transition: all 0.3s ease;
-}
-
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 30px var(--neon-cyan);
-}
-
-#status {
-  margin-top: 25px;
-  font-size: 1em;
-  color: var(--neon-cyan);
-  text-shadow: 0 0 10px var(--neon-cyan);
-  min-height: 24px;
-}
-
-a.group-link {
-  display: inline-block;
-  margin-top: 15px;
-  padding: 12px 20px;
-  border-radius: 20px;
-  background: var(--neon-purple);
-  color: #fff;
-  text-decoration: none;
   font-weight: bold;
-  box-shadow: 0 0 20px var(--neon-purple);
-  transition: all 0.3s ease;
+  box-shadow: 0 0 15px #bc13fe;
 }
-
-a.group-link:hover {
-  box-shadow: 0 0 25px var(--neon-cyan);
-  transform: translateY(-2px);
-}
+button:hover { transform: translateY(-2px); box-shadow: 0 0 25px #00ffff; }
+#status { margin-top: 15px; color: #00ffff; min-height: 20px; }
 </style>
 </head>
 <body>
 
 <h1>Join Shadow VCF Session</h1>
-
 <div class="container">
   <input type="text" id="participantName" placeholder="Your Name">
   <input type="text" id="participantNumber" placeholder="Phone Number (+1234567890)">
@@ -118,59 +54,51 @@ a.group-link:hover {
   <div id="status"></div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.24.0/firebase-app.js";
-import { getFirestore, doc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.24.0/firebase-firestore.js";
-
+<script src="https://www.gstatic.com/firebasejs/11.24.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.24.0/firebase-firestore.js"></script>
+<script>
 const firebaseConfig = {
   apiKey: "AIzaSyBnbWvBJ_KtXl_1KpPGCmr-os4gKIP_uhM",
   authDomain: "shadow-vcf.firebaseapp.com",
   projectId: "shadow-vcf",
   storageBucket: "shadow-vcf.firebasestorage.app",
   messagingSenderId: "575022348228",
-  appId: "1:575022348228:web:447dde12e94ac740079691",
-  measurementId: "G-7SXSRVXHMT"
+  appId: "1:575022348228:web:447dde12e94ac740079691"
 };
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 const urlParams = new URLSearchParams(window.location.search);
 const sessionID = urlParams.get('session');
 const statusDiv = document.getElementById('status');
 
-function isValidIntlNumber(number) {
+function isValidIntlNumber(number){
   return /^\+[1-9]\d{6,14}$/.test(number);
 }
 
-document.getElementById('joinSessionBtn').addEventListener('click', async () => {
+document.getElementById('joinSessionBtn').addEventListener('click', async()=>{
   const name = document.getElementById('participantName').value.trim();
   const number = document.getElementById('participantNumber').value.trim();
+  if(!name) return alert("Enter your name");
+  if(!isValidIntlNumber(number)) return alert("Number must be +1234567890 format");
+  if(!sessionID) return alert("Invalid session");
 
-  if (!name) return alert("Please enter your name");
-  if (!isValidIntlNumber(number)) return alert("Enter phone number in international format (+1234567890)");
-  if (!sessionID) return alert("Invalid session");
+  try{
+    const docRef = db.collection("sessions").doc(sessionID);
+    const docSnap = await docRef.get();
+    if(!docSnap.exists) return alert("Session not found");
 
-  try {
-    const docRef = doc(db,"sessions",sessionID);
-    const docSnap = await getDoc(docRef);
-    if(!docSnap.exists()) return alert("Session not found");
     const session = docSnap.data();
     if(session.participants.length >= session.maxParticipants) return alert("Session full");
 
-    const join = confirm(`✅ Info valid!\n\nClick OK to join the group:\n${session.groupLink}`);
-    if(join) {
-      await updateDoc(docRef, { participants: arrayUnion({name, number}) });
-      statusDiv.textContent = "🎉 Info saved! You joined the session successfully!";
-      document.getElementById('participantName').value = '';
-      document.getElementById('participantNumber').value = '';
-    } else {
-      alert("You must join the group to save your info!");
-    }
-  } catch(err) {
-    console.error(err);
-    alert("Failed to join session");
-  }
+    const join = confirm(`✅ Info valid! Click OK to join the group:\n${session.groupLink}`);
+    if(join){
+      await docRef.update({ participants: firebase.firestore.FieldValue.arrayUnion({name,number}) });
+      statusDiv.textContent="🎉 Info saved! Joined successfully!";
+      document.getElementById('participantName').value='';
+      document.getElementById('participantNumber').value='';
+    }else{ alert("You must join the group to save your info!"); }
+  }catch(err){console.error(err); alert("Failed to join session");}
 });
 </script>
 </body>
