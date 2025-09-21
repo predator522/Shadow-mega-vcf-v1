@@ -3,192 +3,111 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shadow VCF - Owner</title>
+<title>Owner Dashboard - Shadow VCF</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap');
+
 body {
   font-family: 'Orbitron', sans-serif;
-  background: #0a0a0a;
-  color: #e2e2e2;
-  text-align: center;
-  padding: 20px;
+  margin:0; padding:20px; background:#0a0a0a; color:#e2e2e2; text-align:center;
 }
-h1,h2 { text-shadow: 0 0 10px #bc13fe; }
-.container {
-  max-width: 450px;
-  margin: auto;
-  background: rgba(20,0,40,0.8);
-  padding: 25px;
-  border-radius: 40px;
-  border: 2px solid #bc13fe;
-  box-shadow: 0 0 20px #bc13fe;
-}
+
+h1 { text-shadow:0 0 10px #bc13fe; font-size:2.2em; }
+.container { max-width:450px; margin:auto; background: rgba(20,0,40,0.8); padding:30px; border-radius:30px; border:2px solid #bc13fe; box-shadow:0 0 25px #bc13fe; }
+
 input, select, button {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  border-radius: 25px;
-  border: 1px solid #00ffff;
-  background: #111;
-  color: #e2e2e2;
-  font-size: 1em;
+  width:100%; padding:12px 15px; margin:10px 0; border-radius:25px; font-family:'Orbitron'; font-size:1em;
+  border:1px solid #00ffff; background:#111111; color:#e2e2e2;
 }
+
 button {
-  background: linear-gradient(to right, #bc13fe, #00ffff);
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-  box-shadow: 0 0 15px #bc13fe;
+  background: linear-gradient(to right, #bc13fe,#00ffff); color:#fff; font-weight:bold; cursor:pointer;
+  border:none; text-shadow:0 0 5px rgba(0,0,0,0.5); box-shadow:0 0 15px #bc13fe;
 }
-button:hover { transform: translateY(-2px); box-shadow: 0 0 25px #00ffff; }
-.share-link {
-  word-break: break-all;
-  background: rgba(30,0,60,0.7);
-  padding: 10px;
-  border-radius: 25px;
-  margin-top: 10px;
-}
-.participant-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-.participant-table th, .participant-table td {
-  border: 1px solid #00ffff;
-  padding: 8px;
-}
-.download-btn {
-  margin-top: 20px;
-  padding: 12px;
-  width: 100%;
-  border-radius: 25px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  background: linear-gradient(to right,#bc13fe,#00ffff);
-  color:#fff;
-}
+
+button:hover { transform:translateY(-2px); box-shadow:0 0 25px #00ffff; }
+
+#sessionInfo, #shareSection { margin-top:20px; }
+.share-link { cursor:pointer; padding:10px; border:1px solid #bc13fe; border-radius:15px; background: rgba(25,0,45,0.5); word-break:break-all; }
 </style>
 </head>
 <body>
 
 <h1>Owner Dashboard</h1>
+
 <div class="container">
-  <h2>Create a Session</h2>
   <input type="text" id="ownerName" placeholder="Your Name">
   <input type="number" id="maxParticipants" placeholder="Max Participants">
-  <input type="text" id="groupLink" placeholder="Group Link (WhatsApp)">
-  <button id="createSessionBtn">Create Session</button>
-
-  <div id="sessionInfo"></div>
-  <div id="shareSection" style="display:none">
-    <p>Share this link with participants:</p>
-    <div class="share-link" id="shareLink">Click to copy</div>
-  </div>
-
-  <table class="participant-table" id="participantsTable">
-    <thead><tr><th>Name</th><th>Number</th></tr></thead>
-    <tbody></tbody>
-  </table>
-  <button id="downloadVCFBtn" class="download-btn">Download All VCFs</button>
+  <input type="number" id="duration" placeholder="Duration">
+  <select id="durationUnit">
+    <option value="minutes">Minutes</option>
+    <option value="hours">Hours</option>
+    <option value="days">Days</option>
+  </select>
+  <input type="text" id="groupLink" placeholder="Join the VCF group (URL)">
+  <button id="createSessionBtn" type="button">Create Session</button>
 </div>
 
+<div id="sessionInfo"></div>
+<div id="shareSection" style="display:none;">
+  <p>Share this link with participants:</p>
+  <div class="share-link" id="shareLink">Click to copy</div>
+</div>
+
+<!-- Firebase Scripts -->
 <script src="https://www.gstatic.com/firebasejs/11.24.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.24.0/firebase-firestore.js"></script>
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyBnbWvBJ_KtXl_1KpPGCmr-os4gKIP_uhM",
-  authDomain: "shadow-vcf.firebaseapp.com",
-  projectId: "shadow-vcf",
-  storageBucket: "shadow-vcf.firebasestorage.app",
-  messagingSenderId: "575022348228",
-  appId: "1:575022348228:web:447dde12e94ac740079691"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+  const firebaseConfig = {
+    apiKey: "AIzaSyBnbWvBJ_KtXl_1KpPGCmr-os4gKIP_uhM",
+    authDomain: "shadow-vcf.firebaseapp.com",
+    projectId: "shadow-vcf",
+    storageBucket: "shadow-vcf.firebasestorage.app",
+    messagingSenderId: "575022348228",
+    appId: "1:575022348228:web:447dde12e94ac740079691",
+    measurementId: "G-7SXSRVXHMT"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-const btn = document.getElementById('createSessionBtn');
-const sessionInfo = document.getElementById('sessionInfo');
-const shareSection = document.getElementById('shareSection');
-const shareLink = document.getElementById('shareLink');
-const participantsTable = document.getElementById('participantsTable').querySelector('tbody');
-let currentSessionID = null;
+  const btn = document.getElementById('createSessionBtn');
+  const sessionInfo = document.getElementById('sessionInfo');
+  const shareSection = document.getElementById('shareSection');
+  const shareLink = document.getElementById('shareLink');
 
-btn.addEventListener('click', async () => {
-  const owner = document.getElementById('ownerName').value.trim();
-  const maxParticipants = parseInt(document.getElementById('maxParticipants').value);
-  const groupLink = document.getElementById('groupLink').value.trim();
-  if(!owner||!maxParticipants||!groupLink) return alert("Fill all fields");
+  btn.addEventListener('click', async () => {
+    const owner = document.getElementById('ownerName').value.trim();
+    const maxP = parseInt(document.getElementById('maxParticipants').value);
+    const duration = parseInt(document.getElementById('duration').value);
+    const unit = document.getElementById('durationUnit').value;
+    const groupLink = document.getElementById('groupLink').value.trim();
 
-  btn.disabled=true; btn.textContent="Creating...";
-  try{
-    const docRef = await db.collection("sessions").add({
-      owner,maxParticipants,groupLink,participants:[],created:Date.now()
-    });
-    currentSessionID = docRef.id;
-    localStorage.setItem('currentSessionID', currentSessionID);
+    if(!owner||!maxP||!duration||!groupLink) return alert("Fill all fields");
 
-    sessionInfo.innerHTML = `Session ID: <b>${currentSessionID}</b>`;
-    shareLink.textContent = `${window.location.origin}/participant.html?session=${currentSessionID}`;
-    shareSection.style.display="block";
+    const ms = unit==='minutes'?duration*60000:unit==='hours'?duration*3600000:duration*86400000;
+    const expiry = Date.now()+ms;
 
-    shareLink.onclick = ()=>{navigator.clipboard.writeText(shareLink.textContent); alert("Link copied!");};
+    try {
+      const docRef = await db.collection('sessions').add({
+        owner, maxParticipants:maxP, expiry, participants:[], groupLink, downloaded:false
+      });
+      localStorage.setItem('currentSessionID', docRef.id);
 
-    renderParticipants();
-  }catch(err){console.error(err); alert("Failed to create session");}
-  btn.disabled=false; btn.textContent="Create Session";
-});
+      sessionInfo.innerHTML = `Session ID: <b style="color:#00ffff;">${docRef.id}</b>`;
+      shareSection.style.display = 'block';
+      const url = `${window.location.origin}/participant.html?session=${docRef.id}`;
+      shareLink.textContent = url;
 
-// Load session on refresh
-window.addEventListener('load', async()=>{
-  const storedID = localStorage.getItem('currentSessionID');
-  if(storedID){
-    currentSessionID = storedID;
-    sessionInfo.innerHTML = `Session ID: <b>${currentSessionID}</b>`;
-    shareLink.textContent = `${window.location.origin}/participant.html?session=${currentSessionID}`;
-    shareSection.style.display="block";
-    renderParticipants();
-  }
-});
-
-async function renderParticipants(){
-  if(!currentSessionID) return;
-  participantsTable.innerHTML="";
-  const docRef = db.collection("sessions").doc(currentSessionID);
-  const docSnap = await docRef.get();
-  if(!docSnap.exists) return;
-  const session = docSnap.data();
-  session.participants.forEach(p=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${p.name}</td><td>${p.number}</td>`;
-    participantsTable.appendChild(tr);
+      shareLink.onclick = () => {
+        navigator.clipboard.writeText(url);
+        shareLink.textContent='Copied!';
+        setTimeout(()=>{shareLink.textContent=url},2000);
+      };
+    } catch(err) {
+      console.error(err);
+      alert("Failed to create session");
+    }
   });
-}
-
-// Download VCF
-document.getElementById('downloadVCFBtn').addEventListener('click', async()=>{
-  if(!currentSessionID) return alert("No active session");
-  const docRef = db.collection("sessions").doc(currentSessionID);
-  const docSnap = await docRef.get();
-  if(!docSnap.exists) return alert("Session not found");
-  const session = docSnap.data();
-  if(session.participants.length===0) return alert("No participants to download");
-
-  let vCardAll='';
-  session.participants.forEach(p=>{
-    vCardAll+=`BEGIN:VCARD
-VERSION:3.0
-FN:${p.name}
-TEL;TYPE=CELL:${p.number}
-NOTE: Saved from session ${currentSessionID}
-END:VCARD
-`;
-  });
-  const blob = new Blob([vCardAll],{type:'text/vcard'});
-  const link=document.createElement('a');
-  link.href=URL.createObjectURL(blob);
-  link.download=`session-${currentSessionID}.vcf`;
-  document.body.appendChild(link); link.click(); document.body.removeChild(link);
-});
 </script>
 </body>
 </html>
