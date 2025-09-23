@@ -2,39 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Shadow Mega VCF - Manage Sessions</title>
+  <title>Shadow Mega VCF - Owner</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
-  <div class="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-6">
-    <h1 class="text-3xl font-bold text-center text-indigo-600 mb-2">Shadow Mega VCF</h1>
-    <p class="text-center text-gray-500 mb-6">Create and Manage Your Session</p>
+  <div class="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-6">
+    <h1 class="text-2xl font-bold text-center text-indigo-600 mb-6">Shadow Mega VCF</h1>
 
     <!-- Create Session -->
     <div id="createSession">
       <h2 class="text-xl font-semibold mb-4 text-gray-700">Create a Session</h2>
       <form id="createForm" class="space-y-3">
-        <input type="text" id="sessionName" placeholder="Session Name" 
-               class="w-full p-2 border rounded-lg focus:ring focus:ring-indigo-300" required>
-        <input type="number" id="maxParticipants" placeholder="Max Participants" 
-               class="w-full p-2 border rounded-lg focus:ring focus:ring-indigo-300" required>
-        <input type="url" id="groupLink" placeholder="Group Link (e.g. WhatsApp/Telegram)" 
-               class="w-full p-2 border rounded-lg focus:ring focus:ring-indigo-300" required>
-        <button type="submit" id="createBtn" 
-                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg">
+        <input type="text" id="sessionName" placeholder="Session Name" class="w-full p-2 border rounded-lg" required>
+        <input type="number" id="maxParticipants" placeholder="Max Participants" class="w-full p-2 border rounded-lg" required>
+        <input type="text" id="groupLink" placeholder="Group Link" class="w-full p-2 border rounded-lg" required>
+        <button type="submit" id="createBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg">
           Create Session
         </button>
       </form>
-      <p id="output" class="text-sm mt-3"></p>
-      <button id="endSessionBtn" 
-              class="hidden w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg mt-4">
+      <p id="output" class="text-sm text-green-600 mt-3"></p>
+      <button id="endSessionBtn" class="hidden w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg mt-4">
         End Current Session
       </button>
+      <a href="download-vcf.html" id="downloadVCFBtn" class="hidden block w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg mt-4 text-center">
+        📥 Download Contacts (VCF)
+      </a>
     </div>
 
     <!-- Dashboard -->
     <div id="dashboard" class="mt-8">
-      <h2 class="text-xl font-semibold mb-4 text-gray-700">Your Sessions</h2>
+      <h2 class="text-xl font-semibold mb-4 text-gray-700">All Sessions</h2>
       <div id="sessionsList" class="space-y-4"></div>
     </div>
   </div>
@@ -42,29 +39,27 @@
   <script type="module">
     import { supabase } from './supabase.js'
 
-    const endSessionBtn = document.getElementById('endSessionBtn')
     const output = document.getElementById('output')
+    const endSessionBtn = document.getElementById('endSessionBtn')
+    const downloadVCFBtn = document.getElementById('downloadVCFBtn')
 
-    // Check if locked session exists
     if (localStorage.getItem("activeSession")) {
       output.innerText = "⚠️ You already have an active session."
-      output.className = "text-sm text-yellow-600 mt-3"
       endSessionBtn.classList.remove("hidden")
+      downloadVCFBtn.classList.remove("hidden")
     }
 
-    // Create session
     document.getElementById('createForm').addEventListener('submit', async (e) => {
       e.preventDefault()
 
       if (localStorage.getItem("activeSession")) {
-        output.innerText = "⚠️ You already have an active session. End it first."
-        output.className = "text-sm text-yellow-600 mt-3"
+        output.innerText = "⚠️ End your current session first."
         return
       }
 
-      const sessionName = document.getElementById('sessionName').value.trim()
+      const sessionName = document.getElementById('sessionName').value
       const maxParticipants = parseInt(document.getElementById('maxParticipants').value)
-      const groupLink = document.getElementById('groupLink').value.trim()
+      const groupLink = document.getElementById('groupLink').value
       const sessionLink = "sess-" + Math.random().toString(36).substring(2, 8)
 
       const { data, error } = await supabase
@@ -74,58 +69,31 @@
         .single()
 
       if (error) {
-        console.error("Supabase error:", error)
         output.innerText = "❌ Error: " + error.message
-        output.className = "text-sm text-red-600 mt-3"
         return
       }
 
-      // Lock session
       localStorage.setItem("activeSession", data.id)
-
-      output.innerHTML = `
-        ✅ Session created!<br>
-        Share this link with participants:<br>
-        <span class="text-indigo-600 break-all">${window.location.origin}/participant.html?link=${sessionLink}</span>
-      `
-      output.className = "text-sm text-green-600 mt-3"
-
+      output.innerText = "✅ Session created! Share this link: " + window.location.origin + "/participant.html?link=" + sessionLink
       endSessionBtn.classList.remove("hidden")
+      downloadVCFBtn.classList.remove("hidden")
       loadSessions()
     })
 
-    // End session
     endSessionBtn.addEventListener('click', async () => {
       const sessionId = localStorage.getItem("activeSession")
       if (!sessionId) return
 
-      const { error } = await supabase.from('sessions').delete().eq('id', sessionId)
-      if (error) {
-        console.error("Error ending session:", error)
-        output.innerText = "❌ Could not end session: " + error.message
-        output.className = "text-sm text-red-600 mt-3"
-        return
-      }
-
+      await supabase.from('sessions').delete().eq('id', sessionId)
       localStorage.removeItem("activeSession")
-      output.innerText = "✅ Session ended. You can now create a new one."
-      output.className = "text-sm text-green-600 mt-3"
+      output.innerText = "✅ Session ended."
       endSessionBtn.classList.add("hidden")
-
+      downloadVCFBtn.classList.add("hidden")
       loadSessions()
     })
 
-    // Load sessions
     async function loadSessions() {
-      const { data: sessions, error } = await supabase
-        .from('sessions')
-        .select('id, session_name, max_participants, session_link')
-
-      if (error) {
-        console.error("Error loading sessions:", error)
-        return
-      }
-
+      const { data: sessions } = await supabase.from('sessions').select('*')
       const container = document.getElementById('sessionsList')
       container.innerHTML = ""
 
@@ -135,20 +103,51 @@
           .select('id', { count: 'exact', head: true })
           .eq('session_id', session.id)
 
+        const percent = Math.min(100, Math.round((count / session.max_participants) * 100))
+
         const div = document.createElement('div')
         div.className = "p-4 border rounded-lg bg-gray-50"
         div.innerHTML = `
           <p class="font-bold text-indigo-700">${session.session_name}</p>
-          <p>${count}/${session.max_participants} joined</p>
-          <p class="text-sm text-gray-600 break-all">
-            Link: ${window.location.origin}/participant.html?link=${session.session_link}
-          </p>
+          <div class="w-full bg-gray-200 rounded-full h-3 my-2">
+            <div class="bg-indigo-600 h-3 rounded-full" style="width:${percent}%"></div>
+          </div>
+          <p>${count}/${session.max_participants} participants</p>
+          <p class="text-sm text-gray-600 break-all">Link: ${window.location.origin}/participant.html?link=${session.session_link}</p>
+          <div id="p-${session.id}" class="mt-3"></div>
         `
         container.appendChild(div)
+
+        if (localStorage.getItem("activeSession") == session.id) {
+          loadParticipants(session.id)
+        }
       }
     }
 
-    // Refresh sessions every 5s
+    async function loadParticipants(sessionId) {
+      const { data: participants } = await supabase
+        .from('participants')
+        .select('*')
+        .eq('session_id', sessionId)
+
+      const box = document.getElementById(`p-${sessionId}`)
+      box.innerHTML = "<p class='font-semibold mb-1'>Participants:</p>"
+
+      participants.forEach(p => {
+        const row = document.createElement('div')
+        row.className = "flex justify-between items-center bg-white p-2 rounded mb-1 border"
+        row.innerHTML = `
+          <span>${p.name} - ${p.phone}</span>
+          <button class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm">Delete</button>
+        `
+        row.querySelector('button').addEventListener('click', async () => {
+          await supabase.from('participants').delete().eq('id', p.id)
+          loadParticipants(sessionId)
+        })
+        box.appendChild(row)
+      })
+    }
+
     setInterval(loadSessions, 5000)
     loadSessions()
   </script>
