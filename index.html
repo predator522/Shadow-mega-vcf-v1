@@ -63,19 +63,37 @@
       const groupLink = document.getElementById('groupLink').value
       const sessionLink = "sess-" + Math.random().toString(36).substring(2, 8)
 
-      const { data, error } = await supabase.from('sessions').insert([
-        { session_name: sessionName, max_participants: maxParticipants, group_link: groupLink, session_link: sessionLink }
-      ]).select().single()
+      console.log("Creating session with:", { sessionName, maxParticipants, groupLink, sessionLink })
+
+      const { data, error } = await supabase
+        .from('sessions')
+        .insert([
+          {
+            session_name: sessionName,
+            max_participants: maxParticipants,
+            group_link: groupLink,
+            session_link: sessionLink
+          }
+        ])
+        .select()
+        .single()
 
       if (error) {
-        output.innerText = "Error: " + error.message
-      } else {
-        // Lock session creation
-        localStorage.setItem("activeSession", data.id)
-        output.innerText =
-          "✅ Session created! Share this link: " + window.location.origin + "/participant.html?link=" + sessionLink
-        endSessionBtn.classList.remove("hidden")
+        console.error("Supabase error:", error)
+        output.innerText = "❌ Error: " + error.message
+        return
       }
+
+      console.log("Session created:", data)
+
+      // Lock session creation
+      localStorage.setItem("activeSession", data.id)
+
+      output.innerText =
+        "✅ Session created! Share this link:\n" +
+        window.location.origin + "/participant.html?link=" + sessionLink
+
+      endSessionBtn.classList.remove("hidden")
 
       loadSessions()
     })
@@ -85,9 +103,14 @@
       const sessionId = localStorage.getItem("activeSession")
       if (!sessionId) return
 
-      await supabase.from('sessions').delete().eq('id', sessionId)
-      localStorage.removeItem("activeSession")
+      const { error } = await supabase.from('sessions').delete().eq('id', sessionId)
+      if (error) {
+        console.error("Error ending session:", error)
+        output.innerText = "❌ Could not end session: " + error.message
+        return
+      }
 
+      localStorage.removeItem("activeSession")
       output.innerText = "✅ Session ended. You can now create a new one."
       endSessionBtn.classList.add("hidden")
 
@@ -96,22 +119,33 @@
 
     // Load sessions + auto-end if full
     async function loadSessions() {
-      const { data: sessions } = await supabase
+      const { data: sessions, error } = await supabase
         .from('sessions')
         .select('id, session_name, max_participants, session_link')
+
+      if (error) {
+        console.error("Error loading sessions:", error)
+        return
+      }
 
       const container = document.getElementById('sessionsList')
       container.innerHTML = ""
 
       for (const session of sessions) {
         // count participants
-        const { count } = await supabase
+        const { count, error: countError } = await supabase
           .from('participants')
           .select('id', { count: 'exact', head: true })
           .eq('session_id', session.id)
 
+        if (countError) {
+          console.error("Count error:", countError)
+          continue
+        }
+
         // Auto-end if session full AND it's this user's active session
         if (count >= session.max_participants && localStorage.getItem("activeSession") == session.id) {
+          console.log("Auto-ending full session:", session.id)
           await supabase.from('sessions').delete().eq('id', session.id)
           localStorage.removeItem("activeSession")
           output.innerText = "✅ Your session has ended automatically (max participants reached)."
