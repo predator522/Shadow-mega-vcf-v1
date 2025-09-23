@@ -1,113 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Owner Dashboard - Shadow VCF</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap');
-
-body {
-  font-family: 'Orbitron', sans-serif;
-  margin:0; padding:20px; background:#0a0a0a; color:#e2e2e2; text-align:center;
-}
-
-h1 { text-shadow:0 0 10px #bc13fe; font-size:2.2em; }
-.container { max-width:450px; margin:auto; background: rgba(20,0,40,0.8); padding:30px; border-radius:30px; border:2px solid #bc13fe; box-shadow:0 0 25px #bc13fe; }
-
-input, select, button {
-  width:100%; padding:12px 15px; margin:10px 0; border-radius:25px; font-family:'Orbitron'; font-size:1em;
-  border:1px solid #00ffff; background:#111111; color:#e2e2e2;
-}
-
-button {
-  background: linear-gradient(to right, #bc13fe,#00ffff); color:#fff; font-weight:bold; cursor:pointer;
-  border:none; text-shadow:0 0 5px rgba(0,0,0,0.5); box-shadow:0 0 15px #bc13fe;
-}
-
-button:hover { transform:translateY(-2px); box-shadow:0 0 25px #00ffff; }
-
-#sessionInfo, #shareSection { margin-top:20px; }
-.share-link { cursor:pointer; padding:10px; border:1px solid #bc13fe; border-radius:15px; background: rgba(25,0,45,0.5); word-break:break-all; }
-</style>
+  <meta charset="UTF-8">
+  <title>VCF Sessions - Owner Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <div class="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-6">
+    <h1 class="text-2xl font-bold text-center text-indigo-600 mb-6">VCF Sessions</h1>
 
-<h1>Owner Dashboard</h1>
+    <!-- Auth Section -->
+    <div id="auth">
+      <h2 class="text-xl font-semibold mb-4 text-gray-700">Login / Signup</h2>
+      <input type="email" id="email" placeholder="Email" 
+             class="w-full p-2 mb-3 border rounded-lg focus:ring focus:ring-indigo-300" required>
+      <input type="password" id="password" placeholder="Password" 
+             class="w-full p-2 mb-3 border rounded-lg focus:ring focus:ring-indigo-300" required>
+      <div class="flex gap-3">
+        <button id="loginBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg">Login</button>
+        <button id="signupBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg">Sign Up</button>
+      </div>
+      <p id="authMessage" class="text-sm text-red-500 mt-3"></p>
+    </div>
 
-<div class="container">
-  <input type="text" id="ownerName" placeholder="Your Name">
-  <input type="number" id="maxParticipants" placeholder="Max Participants">
-  <input type="number" id="duration" placeholder="Duration">
-  <select id="durationUnit">
-    <option value="minutes">Minutes</option>
-    <option value="hours">Hours</option>
-    <option value="days">Days</option>
-  </select>
-  <input type="text" id="groupLink" placeholder="Join the VCF group (URL)">
-  <button id="createSessionBtn" type="button">Create Session</button>
-</div>
+    <!-- Create Session -->
+    <div id="createSession" style="display:none;">
+      <h2 class="text-xl font-semibold mb-4 text-gray-700">Create a Session</h2>
+      <form id="createForm" class="space-y-3">
+        <input type="text" id="sessionName" placeholder="Session Name" 
+               class="w-full p-2 border rounded-lg focus:ring focus:ring-indigo-300" required>
+        <input type="number" id="maxParticipants" placeholder="Max Participants" 
+               class="w-full p-2 border rounded-lg focus:ring focus:ring-indigo-300" required>
+        <input type="text" id="groupLink" placeholder="Group Link" 
+               class="w-full p-2 border rounded-lg focus:ring focus:ring-indigo-300" required>
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg">Create Session</button>
+      </form>
+      <p id="output" class="text-sm text-green-600 mt-3"></p>
+      <button id="logoutBtn" class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg mt-4">Logout</button>
+    </div>
 
-<div id="sessionInfo"></div>
-<div id="shareSection" style="display:none;">
-  <p>Share this link with participants:</p>
-  <div class="share-link" id="shareLink">Click to copy</div>
-</div>
+    <!-- Dashboard -->
+    <div id="dashboard" class="hidden mt-8">
+      <h2 class="text-xl font-semibold mb-4 text-gray-700">My Sessions</h2>
+      <div id="sessionsList" class="space-y-4"></div>
+    </div>
+  </div>
 
-<!-- Firebase Scripts -->
-<script src="https://www.gstatic.com/firebasejs/11.24.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.24.0/firebase-firestore.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBnbWvBJ_KtXl_1KpPGCmr-os4gKIP_uhM",
-    authDomain: "shadow-vcf.firebaseapp.com",
-    projectId: "shadow-vcf",
-    storageBucket: "shadow-vcf.firebasestorage.app",
-    messagingSenderId: "575022348228",
-    appId: "1:575022348228:web:447dde12e94ac740079691",
-    measurementId: "G-7SXSRVXHMT"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  <script type="module">
+    import { supabase } from './supabase.js'
 
-  const btn = document.getElementById('createSessionBtn');
-  const sessionInfo = document.getElementById('sessionInfo');
-  const shareSection = document.getElementById('shareSection');
-  const shareLink = document.getElementById('shareLink');
+    const authDiv = document.getElementById('auth')
+    const createDiv = document.getElementById('createSession')
+    const dashboardDiv = document.getElementById('dashboard')
+    const authMessage = document.getElementById('authMessage')
 
-  btn.addEventListener('click', async () => {
-    const owner = document.getElementById('ownerName').value.trim();
-    const maxP = parseInt(document.getElementById('maxParticipants').value);
-    const duration = parseInt(document.getElementById('duration').value);
-    const unit = document.getElementById('durationUnit').value;
-    const groupLink = document.getElementById('groupLink').value.trim();
+    // Check session on load
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) showApp()
 
-    if(!owner||!maxP||!duration||!groupLink) return alert("Fill all fields");
+    // Auth buttons
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value
+      const password = document.getElementById('password').value
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      error ? authMessage.innerText = error.message : showApp()
+    })
 
-    const ms = unit==='minutes'?duration*60000:unit==='hours'?duration*3600000:duration*86400000;
-    const expiry = Date.now()+ms;
+    document.getElementById('signupBtn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value
+      const password = document.getElementById('password').value
+      const { error } = await supabase.auth.signUp({ email, password })
+      authMessage.innerText = error ? error.message : "Signup successful. Check your email."
+    })
 
-    try {
-      const docRef = await db.collection('sessions').add({
-        owner, maxParticipants:maxP, expiry, participants:[], groupLink, downloaded:false
-      });
-      localStorage.setItem('currentSessionID', docRef.id);
+    // Create session
+    document.getElementById('createForm').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const sessionName = document.getElementById('sessionName').value
+      const maxParticipants = parseInt(document.getElementById('maxParticipants').value)
+      const groupLink = document.getElementById('groupLink').value
+      const sessionLink = "sess-" + Math.random().toString(36).substring(2, 8)
 
-      sessionInfo.innerHTML = `Session ID: <b style="color:#00ffff;">${docRef.id}</b>`;
-      shareSection.style.display = 'block';
-      const url = `${window.location.origin}/participant.html?session=${docRef.id}`;
-      shareLink.textContent = url;
+      const { data: userData } = await supabase.auth.getUser()
+      const userId = userData?.user?.id
 
-      shareLink.onclick = () => {
-        navigator.clipboard.writeText(url);
-        shareLink.textContent='Copied!';
-        setTimeout(()=>{shareLink.textContent=url},2000);
-      };
-    } catch(err) {
-      console.error(err);
-      alert("Failed to create session");
+      const { error } = await supabase.from('sessions').insert([
+        { session_name: sessionName, max_participants: maxParticipants, group_link: groupLink, session_link: sessionLink, owner_id: userId }
+      ])
+
+      document.getElementById('output').innerText = error
+        ? "Error: " + error.message
+        : "✅ Session created! Share this link: " + window.location.origin + "/participant.html?link=" + sessionLink
+
+      loadSessions()
+    })
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await supabase.auth.signOut()
+      showAuth()
+    })
+
+    // Show/Hide sections
+    function showApp() {
+      authDiv.style.display = 'none'
+      createDiv.style.display = 'block'
+      dashboardDiv.classList.remove('hidden')
+      loadSessions()
     }
-  });
-</script>
+    function showAuth() {
+      authDiv.style.display = 'block'
+      createDiv.style.display = 'none'
+      dashboardDiv.classList.add('hidden')
+    }
+
+    // Load sessions with participant counts
+    async function loadSessions() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: sessions } = await supabase
+        .from('sessions')
+        .select('id, session_name, max_participants, session_link')
+        .eq('owner_id', user.id)
+
+      const container = document.getElementById('sessionsList')
+      container.innerHTML = ""
+
+      for (const session of sessions) {
+        // count participants for each session
+        const { count } = await supabase
+          .from('participants')
+          .select('id', { count: 'exact', head: true })
+          .eq('session_id', session.id)
+
+        const div = document.createElement('div')
+        div.className = "p-4 border rounded-lg bg-gray-50"
+        div.innerHTML = `
+          <p class="font-bold text-indigo-700">${session.session_name}</p>
+          <p>${count}/${session.max_participants} joined</p>
+          <p>Link: <span class="text-sm text-gray-600">${window.location.origin}/participant.html?link=${session.session_link}</span></p>
+          <button class="mt-2 bg-indigo-600 text-white px-3 py-1 rounded" onclick="viewParticipants(${session.id})">
+            View Participants
+          </button>
+          <div id="participants-${session.id}" class="mt-2 space-y-2 hidden"></div>
+        `
+        container.appendChild(div)
+      }
+    }
+
+    // Global functions for dashboard
+    window.viewParticipants = async function(sessionId) {
+      const { data: participants } = await supabase
+        .from('participants')
+        .select('*')
+        .eq('session_id', sessionId)
+
+      const container = document.getElementById(`participants-${sessionId}`)
+      container.innerHTML = ""
+      participants.forEach(p => {
+        const row = document.createElement('div')
+        row.className = "flex justify-between items-center bg-white p-2 rounded shadow"
+        row.innerHTML = `
+          <span>${p.name} - ${p.phone_number}</span>
+          <button class="bg-red-500 text-white px-2 py-1 rounded text-sm" onclick="deleteParticipant(${p.id}, ${sessionId})">Delete</button>
+        `
+        container.appendChild(row)
+      })
+      container.classList.toggle("hidden")
+    }
+
+    window.deleteParticipant = async function(id, sessionId) {
+      await supabase.from('participants').delete().eq('id', id)
+      viewParticipants(sessionId) // refresh list
+      loadSessions() // update count
+    }
+  </script>
 </body>
 </html>
