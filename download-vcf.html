@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shadow Mega VCF - Download Contacts</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <div class="w-full max-w-lg bg-white rounded-2xl shadow-lg p-6 text-center">
+    <h1 class="text-2xl font-bold text-indigo-600 mb-4">Download VCF</h1>
+    <p class="text-gray-600 mb-4">Export all participants of your active session.</p>
+    <button id="downloadBtn" 
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg">
+      Download VCF
+    </button>
+    <p id="status" class="text-sm mt-3"></p>
+  </div>
+
+  <script type="module">
+    import { supabase } from './supabase.js'
+
+    document.getElementById("downloadBtn").addEventListener("click", async () => {
+      const sessionId = localStorage.getItem("activeSession")
+      if (!sessionId) {
+        document.getElementById("status").innerText = "❌ No active session found."
+        return
+      }
+
+      const { data: participants, error } = await supabase
+        .from('participants')
+        .select('name, phone')
+        .eq('session_id', sessionId)
+
+      if (error) {
+        document.getElementById("status").innerText = "❌ Error fetching participants."
+        return
+      }
+
+      if (!participants.length) {
+        document.getElementById("status").innerText = "⚠️ No participants yet."
+        return
+      }
+
+      let vcf = ""
+      participants.forEach(p => {
+        vcf += `BEGIN:VCARD\nVERSION:3.0\nFN:${p.name}\nTEL:${p.phone}\nEND:VCARD\n`
+      })
+
+      const blob = new Blob([vcf], { type: "text/vcard" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = "contacts.vcf"
+      a.click()
+      URL.revokeObjectURL(url)
+    })
+  </script>
+</body>
+</html>
