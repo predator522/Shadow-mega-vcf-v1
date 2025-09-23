@@ -26,7 +26,22 @@
     </form>
 
     <p id="message" class="text-sm text-red-500 mt-3"></p>
-    <p id="notice" class="hidden text-sm text-gray-700 mt-3 p-3 bg-yellow-100 rounded-lg"></p>
+  </div>
+
+  <!-- Popup Modal -->
+  <div id="popup" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-lg p-6 w-80 text-center">
+      <h2 class="text-lg font-bold text-gray-800 mb-4">✅ You Joined Successfully!</h2>
+      <p class="text-sm text-gray-600 mb-4">Now join the group to receive the VCF file when the session ends.</p>
+      <a id="groupBtn" href="#" target="_blank"
+         class="block bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg mb-3">
+        Join Group
+      </a>
+      <button onclick="document.getElementById('popup').classList.add('hidden')" 
+              class="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg">
+        Close
+      </button>
+    </div>
   </div>
 
   <script type="module">
@@ -56,8 +71,7 @@
       infoBox.classList.remove("hidden")
       infoBox.innerHTML = `
         <strong>Session:</strong> ${session.session_name}<br>
-        <strong>Max Participants:</strong> ${session.max_participants}<br>
-        <strong>Group Link:</strong> <a href="${session.group_link}" target="_blank" class="text-indigo-600 underline">${session.group_link}</a>
+        <strong>Max Participants:</strong> ${session.max_participants}
       `
     }
 
@@ -68,30 +82,26 @@
       const phone = document.getElementById('phone').value.trim()
       const sessionLink = document.getElementById('sessionLink').value.trim()
       const message = document.getElementById('message')
-      const notice = document.getElementById('notice')
 
-      // Validate phone number (E.164 international format)
       const phoneRegex = /^\+[1-9]\d{1,14}$/
       if (!phoneRegex.test(phone)) {
         message.innerText = "⚠️ Phone must be in international format (+123456789)."
         return
       }
 
-      // Get session
-      const { data: sessions, error: findError } = await supabase
+      const { data: sessions } = await supabase
         .from('sessions')
         .select('*')
         .eq('session_link', sessionLink)
         .limit(1)
 
-      if (findError || sessions.length === 0) {
+      if (!sessions || sessions.length === 0) {
         message.innerText = "❌ Session not found."
         return
       }
 
       const session = sessions[0]
 
-      // Count participants
       const { count } = await supabase
         .from('participants')
         .select('*', { count: 'exact', head: true })
@@ -102,25 +112,20 @@
         return
       }
 
-      // Insert participant
       const { error: insertError } = await supabase
         .from('participants')
         .insert([{ session_id: session.id, name, phone }])
 
       if (insertError) {
         if (insertError.message.includes("unique_participant_per_session")) {
-          message.innerText = "⚠️ This phone number is already registered for this session."
+          message.innerText = "⚠️ This phone number is already registered."
         } else {
           message.innerText = "❌ Error: " + insertError.message
         }
       } else {
         message.innerText = ""
-        notice.classList.remove("hidden")
-        notice.innerHTML = `
-          ✅ You joined <strong>${session.session_name}</strong> successfully!<br>
-          ⚠️ IMPORTANT: Join the group here → 
-          <a href="${session.group_link}" target="_blank" class="text-indigo-600 underline">${session.group_link}</a>
-        `
+        document.getElementById("groupBtn").href = session.group_link
+        document.getElementById("popup").classList.remove("hidden")
       }
     })
   </script>
